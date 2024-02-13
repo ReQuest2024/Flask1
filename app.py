@@ -46,15 +46,18 @@ def about():
 def quotes_lst():
    return quotes
 
-@app.route("/quotes/<int:qid>")
-def quote_qid(qid):
-   quote = {}
+@app.route("/quotes/<int:id>")
+def quote_id(id):
    for d in quotes:
-      if d["id"] == qid:
+      if d["id"] == id:
          quote = d
-   if len(quote) == 0:
-      quote = "Number not found"
-   return quote
+         return quote, 200
+   return f"Quote with id={id} not found", 404
+   
+@app.route("/quotes/count")
+def quotes_count():
+   return {"count":str(len(quotes))}
+
 
 if __name__ == "__main__":
    app.run(debug=True)
