@@ -56,7 +56,7 @@ def quote_id(id):
    
 @app.route("/quotes/count")
 def quotes_count():
-   return {"count":str(len(quotes))}
+   return {"count":len(quotes)}
 
 @app.route("/quotes/random")
 def quotes_random():
