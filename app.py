@@ -36,6 +36,9 @@ quotes = [
 
 ]
 
+for quote in quotes:
+    quote["rating"] = random.choice(range(3,6))
+
 @app.route("/")
 def hello_world():
    return "Hello, World!"
@@ -72,6 +75,8 @@ def new_id():
 def create_quote():
     new_quote = request.json
     new_quote["id"] = new_id()
+    if new_quote["rating"] not in range(1,6):
+        new_quote["rating"] = 1
     quotes.append(new_quote)
     return new_quote, 201
 
@@ -80,6 +85,9 @@ def edit_quote(id):
     new_data = request.json
     for quote in quotes:
         if quote["id"] == id:
+            if new_data.get("rating") not in range(1,6):
+                if quote.get("rating") not in range(1,6):
+                    new_data["rating"] = 1
             quote.update(new_data)
             return {}, 200
     return {}, 404
