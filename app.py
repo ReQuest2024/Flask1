@@ -1,14 +1,15 @@
 from flask import Flask
 import random
+from flask import request
 
 app = Flask(__name__)
 
 app.config['JSON_AS_ASCII'] = False
 
 about_me = {
-   "name": "Вадим",
-   "surname": "Шиховцов",
-   "email": "vshihovcov@specialist.ru"
+   "name": "Name",
+   "surname": "Surname",
+   "email": "email"
 }
 
 quotes = [
@@ -56,11 +57,17 @@ def quote_id(id):
    
 @app.route("/quotes/count")
 def quotes_count():
-   return {"count":len(quotes)}
+   return {"count":len(quotes)}, 200
 
 @app.route("/quotes/random")
 def quotes_random():
-   return random.choice(quotes)
+   return random.choice(quotes), 200
+
+@app.route("/quotes", methods=['POST'])
+def create_quote():
+   data = request.json
+   print("data = ", data)
+   return {}, 201
 
 
 if __name__ == "__main__":
