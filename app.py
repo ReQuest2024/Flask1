@@ -1,4 +1,5 @@
 from flask import Flask
+import random
 
 app = Flask(__name__)
 
@@ -48,15 +49,18 @@ def quotes_lst():
 
 @app.route("/quotes/<int:id>")
 def quote_id(id):
-   for d in quotes:
-      if d["id"] == id:
-         quote = d
+   for quote in quotes:
+      if quote["id"] == id:
          return quote, 200
    return f"Quote with id={id} not found", 404
    
 @app.route("/quotes/count")
 def quotes_count():
    return {"count":str(len(quotes))}
+
+@app.route("/quotes/random")
+def quotes_random():
+   return random.choice(quotes)
 
 
 if __name__ == "__main__":
