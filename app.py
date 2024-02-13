@@ -63,11 +63,35 @@ def quotes_count():
 def quotes_random():
    return random.choice(quotes), 200
 
+
+
+def new_id():
+    return quotes[-1]["id"] + 1
+
 @app.route("/quotes", methods=['POST'])
 def create_quote():
-   data = request.json
-   print("data = ", data)
-   return {}, 201
+    new_quote = request.json
+    new_quote["id"] = new_id()
+    quotes.append(new_quote)
+    return new_quote, 201
+
+@app.route("/quotes/<int:id>", methods=['PUT'])
+def edit_quote(id):
+    new_data = request.json
+    for quote in quotes:
+        if quote["id"] == id:
+            quote.update(new_data)
+            return {}, 200
+    return {}, 404
+    
+@app.route("/quotes/<int:id>", methods=['DELETE'])
+def delete(id):
+    for i in range(len(quotes)):
+        if quotes[i]["id"] == id:
+            quotes.pop(i)
+            return f"Quote with id {id} is deleted.", 200
+    return {}, 404
+
 
 
 if __name__ == "__main__":
