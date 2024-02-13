@@ -46,5 +46,15 @@ def about():
 def quotes_lst():
    return quotes
 
+@app.route("/quotes/<int:qid>")
+def quote_qid(qid):
+   quote = {}
+   for d in quotes:
+      if d["id"] == qid:
+         quote = d
+   if len(quote) == 0:
+      quote = "Number not found"
+   return quote
+
 if __name__ == "__main__":
    app.run(debug=True)
