@@ -69,6 +69,5 @@ def create_quote():
    print("data = ", data)
    return {}, 201
 
-
 if __name__ == "__main__":
    app.run(debug=True)
