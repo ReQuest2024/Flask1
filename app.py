@@ -88,6 +88,8 @@ def edit_quote(id):
             if new_data.get("rating") not in range(1,6):
                 if quote.get("rating") not in range(1,6):
                     new_data["rating"] = 1
+                else:
+                    new_data["rating"] = quote.get("rating")
             quote.update(new_data)
             return {}, 200
     return {}, 404
