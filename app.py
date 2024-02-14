@@ -98,18 +98,14 @@ def quote_id(id):
     select_quotes = f"SELECT * from quotes WHERE id = {id}"
     cursor = get_db().cursor()
     cursor.execute(select_quotes)
-    quotes_db = cursor.fetchall()  # get list[tuple]
+    quote = cursor.fetchone() 
     cursor.close()
 
-    keys = ["id", "author", "text"]
-    quotes = []
-    for quote_db in quotes_db:
-        quote = dict(zip(keys, quote_db))
-        quotes.append(quote)
-    if len(quotes) > 0:
-        return quotes, 200
+    if type(quote) is tuple:
+        return jsonify(quote), 200
     else:
-        return f"Quote with id={id} not found", 404
+        return f"Quote with id={id} not found.", 404
+    
    
 @app.route("/quotes/count")
 def quotes_count():
@@ -127,6 +123,9 @@ def new_id():
 @app.route("/quotes", methods=['POST'])
 def create_quote():
     new_quote = request.json
+
+
+
     new_quote["id"] = new_id()
     if new_quote["rating"] not in range(1,6):
         new_quote["rating"] = 1
