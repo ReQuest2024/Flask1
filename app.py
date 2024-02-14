@@ -17,6 +17,12 @@ def get_db():
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
+
+    def make_dicts(cursor, row):
+        return dict((cursor.description[idx][0], value)
+                for idx, value in enumerate(row))
+
+    db.row_factory = make_dicts
     return db
 
 
@@ -73,36 +79,28 @@ def about():
                 }
     return about_me
 
-@app.route("/quotes")
+@app.get("/quotes")
 def get_quotes():
     # Получение данных из БД
     select_quotes = "SELECT * from quotes"
     cursor = get_db().cursor()
     cursor.execute(select_quotes)
-    quotes_db = cursor.fetchall()  # get list[tuple]
+    quotes_db = cursor.fetchall()  
     cursor.close()
+    if quotes_db:
+        return quotes_db, 200
+    else:
+        return "Not found.", 404
 
-    # Подготовка данных для возврата 
-    # Необходимо выполнить преобразование:
-    # list[tuple] -> list[dict]
-    keys = ["id", "author", "text"]
-    quotes = []
-    for quote_db in quotes_db:
-        quote = dict(zip(keys, quote_db))
-        quotes.append(quote)
-
-    return jsonify(quotes)
-
-@app.route("/quotes/<int:id>")
+@app.get("/quotes/<int:id>")
 def quote_id(id):
     select_quotes = f"SELECT * from quotes WHERE id = {id}"
     cursor = get_db().cursor()
     cursor.execute(select_quotes)
     quote = cursor.fetchone() 
     cursor.close()
-
-    if type(quote) is tuple:
-        return jsonify(quote), 200
+    if quote:
+        return quote, 200
     else:
         return f"Quote with id={id} not found.", 404
     
@@ -120,40 +118,69 @@ def quotes_random():
 def new_id():
     return quotes[-1]["id"] + 1
 
-@app.route("/quotes", methods=['POST'])
+# methods POST
+@app.post("/quotes")
 def create_quote():
     new_quote = request.json
+    create_quote = "INSERT INTO quotes (author,text) VALUES (?, ?)"
+    cursor = get_db().cursor()
+    param = (new_quote.get("author") if new_quote.get("author") else ""
+            , new_quote.get("text") if new_quote.get("text") else ""
+            )
+    cursor.execute(create_quote, param)
+    new_id = cursor.lastrowid
+    g._database.commit()
+    if new_id:
+        return quote_id(new_id)
+    else:
+        return {}, 500
 
-
-
-    new_quote["id"] = new_id()
-    if new_quote["rating"] not in range(1,6):
-        new_quote["rating"] = 1
-    quotes.append(new_quote)
-    return new_quote, 201
-
-@app.route("/quotes/<int:id>", methods=['PUT'])
+# methods PUT
+@app.put("/quotes/<int:id>")
 def edit_quote(id):
     new_data = request.json
-    for quote in quotes:
-        if quote["id"] == id:
-            if new_data.get("rating") not in range(1,6):
-                if quote.get("rating") not in range(1,6):
-                    new_data["rating"] = 1
-                else:
-                    new_data["rating"] = quote.get("rating")
-            quote.update(new_data)
-            return {}, 200
-    return {}, 404
-    
-@app.route("/quotes/<int:id>", methods=['DELETE'])
-def delete(id):
-    for i in range(len(quotes)):
-        if quotes[i]["id"] == id:
-            quotes.pop(i)
-            return f"Quote with id {id} is deleted.", 200
-    return {}, 404
+    cursor = get_db().cursor()
+    edit_quote = ""
+    resp = 0
+    param = []
+    if new_data.get("author") or new_data.get("text"):
+        if new_data.get("author"):
+            edit_quote += "author=?"
+            param.append(new_data["author"])
+        if new_data.get("author") and new_data.get("text"):
+            edit_quote += ", "
+        if new_data.get("text"):
+            edit_quote += "text=?"
+            param.append(new_data["text"])
+        param.append(id)
+        edit_quote = f'UPDATE quotes SET {edit_quote} WHERE id=?'
+        print(edit_quote)
+        cursor.execute(edit_quote, param)
+        resp = cursor.rowcount
 
+        g._database.commit()
+    cursor.close()
+    if resp:
+        return quote_id(id)
+    else:
+        return {}, 500
+
+# methods DELETE    
+@app.delete("/quotes/<int:id>")
+def delete(id):
+    cursor = get_db().cursor()
+    delete_quote = f'DELETE FROM quotes WHERE id={id}'
+    print(delete_quote)
+    cursor.execute(delete_quote)
+    resp = cursor.rowcount
+
+    g._database.commit()
+    cursor.close()
+    
+    if resp:
+        return f"Row with id={id} deleted.", 200
+    else:
+        return f"Row with id={id} not found.", 404
 
 
 if __name__ == "__main__":
