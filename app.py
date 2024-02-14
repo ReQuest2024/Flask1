@@ -1,16 +1,37 @@
-from flask import Flask
+from flask import Flask, request, jsonify, g
 import random
-from flask import request
+import sqlite3
+from pathlib import Path
+from werkzeug.exceptions import HTTPException
+
+BASE_DIR = Path(__file__).parent
+DATABASE = BASE_DIR / "test.db"  # <- path to DB
+
 
 app = Flask(__name__)
 
 app.config['JSON_AS_ASCII'] = False
 
-about_me = {
-   "name": "Name",
-   "surname": "Surename",
-   "email": ""
-}
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+    return db
+
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+
+# Обработка ошибок и возврат сообщения в виде JSON
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    return jsonify({"message": e.description}), e.code
+
 
 quotes = [
    {
@@ -45,18 +66,50 @@ def hello_world():
 
 @app.route("/about")
 def about():
-   return about_me
+    about_me = {
+                "name": "Name",
+                "surname": "Surename",
+                "email": ""
+                }
+    return about_me
 
 @app.route("/quotes")
-def quotes_lst():
-   return quotes
+def get_quotes():
+    # Получение данных из БД
+    select_quotes = "SELECT * from quotes"
+    cursor = get_db().cursor()
+    cursor.execute(select_quotes)
+    quotes_db = cursor.fetchall()  # get list[tuple]
+    cursor.close()
+
+    # Подготовка данных для возврата 
+    # Необходимо выполнить преобразование:
+    # list[tuple] -> list[dict]
+    keys = ["id", "author", "text"]
+    quotes = []
+    for quote_db in quotes_db:
+        quote = dict(zip(keys, quote_db))
+        quotes.append(quote)
+
+    return jsonify(quotes)
 
 @app.route("/quotes/<int:id>")
 def quote_id(id):
-   for quote in quotes:
-      if quote["id"] == id:
-         return quote, 200
-   return f"Quote with id={id} not found", 404
+    select_quotes = f"SELECT * from quotes WHERE id = {id}"
+    cursor = get_db().cursor()
+    cursor.execute(select_quotes)
+    quotes_db = cursor.fetchall()  # get list[tuple]
+    cursor.close()
+
+    keys = ["id", "author", "text"]
+    quotes = []
+    for quote_db in quotes_db:
+        quote = dict(zip(keys, quote_db))
+        quotes.append(quote)
+    if len(quotes) > 0:
+        return quotes, 200
+    else:
+        return f"Quote with id={id} not found", 404
    
 @app.route("/quotes/count")
 def quotes_count():
