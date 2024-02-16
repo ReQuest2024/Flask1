@@ -105,6 +105,16 @@ def delete(id):
     abort(404, f"Quote id = {id} not found")
     
 
+# GET filter
+@app.get("/quotes/filter")
+def get_quote_by_filter():
+    kwargs = request.args
+    quotes = QuoteModel.query.filter_by(**kwargs).all()
+    quotes_lst = []
+    for quote in quotes:
+        quotes_lst.append(quote.to_dict())
+    return jsonify(quotes_lst), 200
+    
 
 
 
