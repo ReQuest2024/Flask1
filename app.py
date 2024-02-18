@@ -21,19 +21,24 @@ migrate = Migrate(app, db)
 class AuthorModel(db.Model):
     __tablename__ = "authors"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(32), unique=True, nullable=False)
+    name = db.Column(db.String(32), nullable=False)
+    surname = db.Column(db.String(32), nullable=False, server_default = "nosurname")
     quotes = db.relationship('QuoteModel', backref='author', lazy='dynamic', cascade="all, delete-orphan")
+    __table_args__ = (db.UniqueConstraint("name", "surname", name="_full_name"),)
 
-    def __init__(self, name):
-       self.name = name
+    def __init__(self, name, surname):
+       self.name = name,
+       self.surname = surname
+
 
     def __repr__(self):
-        return f'Author({self.name})'
+        return f'Author({self.name, self.surname})'
 
     def to_dict(self):
         return {
             "id": self.id,
-            "name": self.name
+            "name": self.name,
+            "surname": self.surname
         }
 
 
@@ -87,10 +92,10 @@ def get_author_by_id(author_id):
 @app.post("/authors")
 def create_author():
     author_data = request.json
-    authors_name = db.session.query(AuthorModel).filter_by(name = author_data.get("name", "noname"))
-    if len(authors_name.all()):
-        abort(500, f"Author with name = '{author_data.get('name', 'noname')}' already exists")
-    author = AuthorModel(author_data.get("name", "noname")) 
+    authors_full = db.session.query(AuthorModel).filter_by(name = author_data.get("name", "noname")).filter_by(surname = author_data.get("surname", "nosurname"))
+    if len(authors_full.all()):
+        abort(500, f"Author with name = '{author_data.get('name', 'noname')}' and surname = '{author_data.get('surname', 'nosurname')}' already exists")
+    author = AuthorModel(author_data.get("name", "noname"), author_data.get("surname", "nosurname")) 
     db.session.add(author)
     db.session.commit()
     return jsonify(author.to_dict()), 201
@@ -103,9 +108,9 @@ def edit_author_by_id(author_id):
     author = db.session.get(AuthorModel, author_id)   
     if not author:
         abort(404, f"Author with author_id = {author_id} not found")
-    authors_name = db.session.query(AuthorModel).filter_by(name = new_data.get("name", "noname"))
-    if len(authors_name.all()):
-        abort(500, f"Author with name = '{new_data.get('name', 'noname')}' already exists")
+    authors_full = db.session.query(AuthorModel).filter_by(name = new_data.get("name", "noname")).filter_by(surname = new_data.get("surname", "nosurname"))
+    if len(authors_full.all()):
+        abort(404, f"Author with name = '{new_data.get('name', 'noname')}' and surname = '{new_data.get('surname', 'nosurname')}' already exists")
     for key, value in new_data.items():
         setattr(author, key, value)
     try:
