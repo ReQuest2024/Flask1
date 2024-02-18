@@ -1,0 +1,198 @@
+{
+    "client": "Thunder Client",
+    "collectionName": "QuotesAPI(Flask1)",
+    "dateExported": "2024-02-16T18:34:00.492Z",
+    "version": "1.1",
+    "folders": [
+        {
+            "_id": "99e0ace2-be25-4a40-8d46-94abfd2deed9",
+            "name": "Lesson01",
+            "containerId": "",
+            "created": "2024-02-13T16:02:39.252Z",
+            "sortNum": 10000
+        }
+    ],
+    "requests": [
+        {
+            "_id": "f3d3bcb9-b7bb-4728-847d-a792ba6e1992",
+            "colId": "5d0c118b-5312-4064-9c9f-fb47e98c9d0d",
+            "containerId": "99e0ace2-be25-4a40-8d46-94abfd2deed9",
+            "name": "Get a list of quotes",
+            "url": "127.0.0.1:5000/quotes",
+            "method": "GET",
+            "sortNum": 10000,
+            "created": "2024-02-13T16:02:39.252Z",
+            "modified": "2024-02-13T16:02:39.252Z",
+            "headers": []
+        },
+        {
+            "_id": "4787f686-e27d-49be-88ca-e9017b7b28f4",
+            "colId": "5d0c118b-5312-4064-9c9f-fb47e98c9d0d",
+            "containerId": "99e0ace2-be25-4a40-8d46-94abfd2deed9",
+            "name": "Get quote by id",
+            "url": "127.0.0.1:5000/quotes/1",
+            "method": "GET",
+            "sortNum": 20000,
+            "created": "2024-02-13T16:02:39.253Z",
+            "modified": "2024-02-16T16:30:30.917Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "8eeec5eb-20c0-4dae-a3e8-d23ef6e7d223",
+            "colId": "5d0c118b-5312-4064-9c9f-fb47e98c9d0d",
+            "containerId": "99e0ace2-be25-4a40-8d46-94abfd2deed9",
+            "name": "Get the number of quotes",
+            "url": "127.0.0.1:5000/quotes/count",
+            "method": "GET",
+            "sortNum": 30000,
+            "created": "2024-02-13T16:02:39.254Z",
+            "modified": "2024-02-13T16:02:39.254Z",
+            "headers": []
+        },
+        {
+            "_id": "b6480246-8de9-4894-935a-d67567101508",
+            "colId": "5d0c118b-5312-4064-9c9f-fb47e98c9d0d",
+            "containerId": "99e0ace2-be25-4a40-8d46-94abfd2deed9",
+            "name": "Get random quote",
+            "url": "127.0.0.1:5000/quotes/random",
+            "method": "GET",
+            "sortNum": 40000,
+            "created": "2024-02-13T16:02:39.255Z",
+            "modified": "2024-02-13T16:02:39.255Z",
+            "headers": []
+        },
+        {
+            "_id": "7854f679-d2b7-4015-ba4a-3bd510d48c42",
+            "colId": "5d0c118b-5312-4064-9c9f-fb47e98c9d0d",
+            "containerId": "99e0ace2-be25-4a40-8d46-94abfd2deed9",
+            "name": "Create new quote",
+            "url": "127.0.0.1:5000/authors/2/quotes",
+            "method": "POST",
+            "sortNum": 50000,
+            "created": "2024-02-13T16:02:39.256Z",
+            "modified": "2024-02-16T18:32:01.828Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"text\": \"Nick's quote\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "3ae2e8f1-a121-469e-9af8-0de4e1b13547",
+            "colId": "5d0c118b-5312-4064-9c9f-fb47e98c9d0d",
+            "containerId": "99e0ace2-be25-4a40-8d46-94abfd2deed9",
+            "name": "Edit quote",
+            "url": "127.0.0.1:5000/quotes/4",
+            "method": "PUT",
+            "sortNum": 60000,
+            "created": "2024-02-13T16:02:39.257Z",
+            "modified": "2024-02-16T17:45:50.479Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"author\": \"Nick\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "6b242e45-db42-408b-b653-b297c701e6be",
+            "colId": "5d0c118b-5312-4064-9c9f-fb47e98c9d0d",
+            "containerId": "99e0ace2-be25-4a40-8d46-94abfd2deed9",
+            "name": "Delete quote",
+            "url": "127.0.0.1:5000/quotes/2",
+            "method": "DELETE",
+            "sortNum": 70000,
+            "created": "2024-02-13T16:02:39.258Z",
+            "modified": "2024-02-16T16:47:41.266Z",
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "8c2bfbf8-a95c-416e-a7fc-cdeb82c3399e",
+            "colId": "5d0c118b-5312-4064-9c9f-fb47e98c9d0d",
+            "containerId": "99e0ace2-be25-4a40-8d46-94abfd2deed9",
+            "name": "Get quotes with query parameters",
+            "url": "127.0.0.1:5000/quotes/filter?author=Nick&text=Nick's quote",
+            "method": "GET",
+            "sortNum": 80000,
+            "created": "2024-02-16T17:14:39.620Z",
+            "modified": "2024-02-16T17:46:47.403Z",
+            "headers": [],
+            "params": [
+                {
+                    "name": "author",
+                    "value": "Nick",
+                    "isPath": false
+                },
+                {
+                    "name": "text",
+                    "value": "Nick's quote",
+                    "isPath": false
+                }
+            ],
+            "tests": []
+        },
+        {
+            "_id": "6a41949d-d838-4fc0-9973-8afe8659cf90",
+            "colId": "5d0c118b-5312-4064-9c9f-fb47e98c9d0d",
+            "containerId": "",
+            "name": "Create new author",
+            "url": "127.0.0.1:5000/authors",
+            "method": "POST",
+            "sortNum": 90000,
+            "created": "2024-02-16T18:26:31.213Z",
+            "modified": "2024-02-16T18:31:03.785Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"Mike\"\n}",
+                "form": []
+            },
+            "tests": []
+        }
+    ],
+    "settings": {
+        "preReq": {
+            "inlineScripts": [
+                {
+                    "script": [
+                        ""
+                    ]
+                }
+            ]
+        },
+        "postReq": {
+            "inlineScripts": [
+                {
+                    "script": [
+                        ""
+                    ]
+                }
+            ]
+        }
+    }
+}

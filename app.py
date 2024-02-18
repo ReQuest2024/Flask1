@@ -9,34 +9,52 @@ BASE_DIR = Path(__file__).parent
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{BASE_DIR / 'main.db'}"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{BASE_DIR / 'quotes.db'}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Для вывода содержимого SQL запросов
+# app.config["SQLALCHEMY_ECHO"] = True
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
-class QuoteModel(db.Model):
-    __tablename__ = "quote_model"
+class AuthorModel(db.Model):
+    __tablename__ = "authors"
     id = db.Column(db.Integer, primary_key=True)
-    author = db.Column(db.String(32), unique=False, nullable=False)
-    text = db.Column(db.String(255), unique=False, nullable=False)
-    rating = db.Column(db.Integer, unique=False, nullable=False)
+    name = db.Column(db.String(32), unique=True, nullable=False)
+    quotes = db.relationship('QuoteModel', backref='author', lazy='dynamic', cascade="all, delete-orphan")
 
-    def __init__(self, author, text, rating):
-       self.author = author
-       self.text  = text
-       self.rating = rating if rating is not None and 0 < rating < 6 else 1
+    def __init__(self, name):
+       self.name = name
 
     def __repr__(self):
-        return f'Quote({self.author}, {self.text}, {self.rating})'
+        return f'Author({self.name})'
 
     def to_dict(self):
         return {
             "id": self.id,
-            "author": self.author,
-            "text": self.text,
-            "rating": self.rating
+            "name": self.name
+        }
+
+
+class QuoteModel(db.Model):
+    __tablename__ = "quote"
+    id = db.Column(db.Integer, primary_key=True)
+    author_id = db.Column(db.Integer, db.ForeignKey(AuthorModel.id), nullable=False)
+    text = db.Column(db.String(255), unique=False, nullable=False)
+
+    def __init__(self, author, text):
+       self.author_id = author.id
+       self.text  = text
+
+    def __repr__(self):
+        return f'Quote({self.text})'
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "author": self.author_id,
+            "text": self.text
         }
 
 # Обработка ошибок и возврат сообщения в виде JSON
@@ -45,10 +63,29 @@ def handle_exception(e):
     return jsonify({"message": e.description}), e.code
 
 
+@app.post("/authors")
+def create_author():
+    author_data = request.json
+    author = AuthorModel(author_data.get("name", "noname")) 
+    db.session.add(author)
+    db.session.commit()
+    return jsonify(author.to_dict()), 201
+
+
+@app.post("/authors/<int:author_id>/quotes")
+def create_quote_to_author(author_id):
+    author = AuthorModel.query.get(author_id)
+    data = request.json
+    new_quote = QuoteModel(author, data.get("text", "blank")) 
+    db.session.add(new_quote)
+    db.session.commit()
+    return new_quote.to_dict(), 201
+
+
 # GET на url: /quotes/
 @app.route("/quotes")
 def get_quotes():
-    quotes_lst = db.session.query(QuoteModel)   # QuoteModel.query.all()
+    quotes_lst = db.session.query(QuoteModel)   
     quotes_lst_dct = []
     for quote in quotes_lst:
         quotes_lst_dct.append(quote.to_dict())
@@ -58,7 +95,7 @@ def get_quotes():
 # GET на url: /quotes/<int:id>
 @app.get("/quotes/<int:id>")
 def get_quote_id(id):
-    quote = db.session.get(QuoteModel, id)      # The Query.get() method is considered legacy (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    quote = db.session.get(QuoteModel, id)   
     if not quote is None:
         return jsonify(quote.to_dict()), 200
     abort(404, f"Quote id = {id} not found")
@@ -111,10 +148,11 @@ def get_quote_by_filter():
     kwargs = request.args
     quotes = QuoteModel.query.filter_by(**kwargs).all()
     quotes_lst = []
-    for quote in quotes:
-        quotes_lst.append(quote.to_dict())
-    return jsonify(quotes_lst), 200
-    
+    if quotes:
+        for quote in quotes:
+            quotes_lst.append(quote.to_dict())
+        return jsonify(quotes_lst), 200
+    return jsonify([]), 200
 
 
 
