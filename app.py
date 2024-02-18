@@ -21,8 +21,8 @@ migrate = Migrate(app, db)
 class AuthorModel(db.Model):
     __tablename__ = "authors"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(32), nullable=False)
-    surname = db.Column(db.String(32), nullable=False, server_default = "nosurname")
+    name = db.Column(db.String(32), nullable=False, default = "name", server_default = "name")
+    surname = db.Column(db.String(32), nullable=False, default = "nosurname", server_default = "nosurname")
     quotes = db.relationship('QuoteModel', backref='author', lazy='dynamic', cascade="all, delete-orphan")
     __table_args__ = (db.UniqueConstraint("name", "surname", name="_full_name"),)
 
@@ -32,7 +32,7 @@ class AuthorModel(db.Model):
 
 
     def __repr__(self):
-        return f'Author({self.name, self.surname})'
+        return f'Author({self.name}, {self.surname})'
 
     def to_dict(self):
         return {
@@ -42,15 +42,18 @@ class AuthorModel(db.Model):
         }
 
 
+
 class QuoteModel(db.Model):
     __tablename__ = "quote"
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey(AuthorModel.id), nullable=False)
     text = db.Column(db.String(255), unique=False, nullable=False)
+    raiting = db.Column(db.Integer, unique=False, nullable=False, default = "3", server_default = "3" )
 
-    def __init__(self, author, text):
+    def __init__(self, author, text, raiting):
        self.author_id = author.id
        self.text  = text
+       self.raiting = raiting
 
     def __repr__(self):
         return f'Quote({self.text})'
@@ -59,7 +62,8 @@ class QuoteModel(db.Model):
         return {
             "id": self.id,
             "author": self.author_id,
-            "text": self.text
+            "text": self.text,
+            "raiting": self.raiting
         }
 
 # Обработка ошибок и возврат сообщения в виде JSON
@@ -95,7 +99,10 @@ def create_author():
     authors_full = db.session.query(AuthorModel).filter_by(name = author_data.get("name", "noname")).filter_by(surname = author_data.get("surname", "nosurname"))
     if len(authors_full.all()):
         abort(500, f"Author with name = '{author_data.get('name', 'noname')}' and surname = '{author_data.get('surname', 'nosurname')}' already exists")
-    author = AuthorModel(author_data.get("name", "noname"), author_data.get("surname", "nosurname")) 
+    author = AuthorModel("","") 
+    for key, value in author_data.items():
+        setattr(author, key, value)
+    print(author.__repr__)
     db.session.add(author)
     db.session.commit()
     return jsonify(author.to_dict()), 201
@@ -169,7 +176,8 @@ def create_quote_to_author(author_id):
     if not author:
         abort(404, f"Author with author_id = {author_id} not found")
     data = request.json
-    new_quote = QuoteModel(author, data.get("text", "blank")) 
+    raiting = data.get("raiting", 1) if 0 < data.get("raiting", 1) < 6 else 1
+    new_quote = QuoteModel(author, data.get("text", "blank"), raiting) 
     db.session.add(new_quote)
     db.session.commit()
     return new_quote.to_dict(), 201
@@ -182,6 +190,8 @@ def edit_quote_by_id(quote_id):
     quote = db.session.get(QuoteModel, quote_id) 
     if not quote:
         abort(404, f"Quthor with quote_id = {quote_id} not found")
+    raiting = new_data.get("raiting", quote.raiting) if 0 < new_data.get("raiting", quote.raiting) < 6 else 1
+    new_data['raiting'] = raiting
     for key, value in new_data.items():
         setattr(quote, key, value)
     try:
@@ -201,6 +211,23 @@ def delete_quote_by_id(quote_id):
         return {"message": f"Quote with quote_id = {quote_id} deleted."}, 200
     abort(404, f"Quote with quote_id = {quote_id} not found")
 
+
+# PUT на url: /quotes/<int:quote_id>/grade     # обновить рейтинг цитаты с quote_id = <int:quote_id>
+@app.put("/quotes/<int:quote_id>/grade")
+def edit_raiting_quote_by_id(quote_id):
+    new_raiting = request.json
+    quote = db.session.get(QuoteModel, quote_id) 
+    if not quote:
+        abort(404, f"Quthor with quote_id = {quote_id} not found")
+    grade = -1 if new_raiting.get("grade", 0) <= 0 else 1
+    if (grade == -1 and quote.raiting > 1) or (grade == 1 and quote.raiting < 5):
+        raiting = quote.raiting + grade
+        setattr(quote, 'raiting', raiting)
+        try:
+            db.session.commit()
+        except:
+            abort(500)
+    return jsonify(quote.to_dict()), 200
 
 
 
