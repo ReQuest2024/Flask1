@@ -83,7 +83,7 @@ def get_all_authors():
     return jsonify(authors_lst_dct), 200
 
 
-# GET на url: /authors/<int:author_id>     # получить автора с id = <int:author_id>
+# GET на url: /authors/<int:author_id>     # получить автора с author_id = <int:author_id>
 @app.get("/authors/<int:author_id>")
 def get_author_by_id(author_id):
     author = db.session.get(AuthorModel, author_id)   
@@ -108,7 +108,7 @@ def create_author():
     return jsonify(author.to_dict()), 201
 
 
-# PUT на url: /authors/<int:id>     # обновить автора с id = <int:id>
+# PUT на url: /authors/<int:id>     # обновить автора с author_id = <int:author_id>
 @app.put("/authors/<int:author_id>")
 def edit_author_by_id(author_id):
     new_data = request.json
@@ -127,7 +127,7 @@ def edit_author_by_id(author_id):
         abort(500)
 
 
-# DELETE на url: /authors/<int:id>  # удалить автора с id = <int:id>
+# DELETE на url: /authors/<int:id>  # удалить автора с author_id = <int:author_id>
 @app.delete("/authors/<int:author_id>")
 def delete_author_by_id(author_id):
     quote = db.session.get(AuthorModel, author_id)
@@ -159,7 +159,7 @@ def get_quote_by_id(quote_id):
     abort(404, f"Quote with quote_id = {quote_id} not found")
 
 
-# GET на url: /authors/<int:id>/quotes      # получить все цитаты автора с quote_id = <int:quote_id>
+# GET на url: /authors/<int:id>/quotes      # получить все цитаты автора с author_id = <int:author_id>
 @app.get("/authors/<int:author_id>/quotes")
 def get_quote_by_author(author_id):
     quotes_lst = db.session.query(QuoteModel).filter_by(author_id = author_id)   
@@ -169,7 +169,7 @@ def get_quote_by_author(author_id):
     return jsonify(quotes_lst_dct), 200
 
 
-# POST на url: /authors/<int:id>/quotes      # создать цитату для автора с quote_id = <int:quote_id>
+# POST на url: /authors/<int:id>/quotes      # создать цитату для автора с author_id = <int:author_id>
 @app.post("/authors/<int:author_id>/quotes")
 def create_quote_to_author(author_id):
     author = db.session.get(AuthorModel, author_id)   
